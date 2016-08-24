@@ -4,7 +4,7 @@
 
 ###Here is tool to maintain your local APK repository easily.
  
-##It helps to categories the APK files: 
+##It helps to categorise the APK files: 
 You can create any custom structure of folders as a repository, where you store your APK files
 You need to put the new files into the "inPath" folder, and APKking will move that file(s) into the repository using a following mechanism:
 
@@ -17,6 +17,9 @@ You need to put the new files into the "inPath" folder, and APKking will move th
 * Console based application, no GUI
 * Easy to setup : just setup the ini file, need to create some directories, and run start.bat
 * It doesn't rename any file (it stores all usage informations in a filename if you wish)
+* It doesn't modify or change any files
+* It doesn't delete any files
+* It just move files from inPath to the collection, and from collection a to delete folder
 * APKing is fast using caches (determine the APK files's meta information is slow, so it using cache files to store this information)
 
 ##Environment:
@@ -25,7 +28,7 @@ You need to put the new files into the "inPath" folder, and APKking will move th
 * ADB connection to your phone is optional
 
 ##Prepare and run :
-What you need to do is set "apking.ini" , and simply run the APKking with the start.sh or start.bat . 
+What you need to do is set "apking.ini" , and simply run the APKing with the start.sh or start.bat . 
 There is no parameters to add. 
 Optionally if you connects your phone via ADB, then it creates an update package for you. 
 
@@ -36,7 +39,7 @@ Optionally if you connects your phone via ADB, then it creates an update package
 2. Move old versions to a "deletePath" 
 3. Check the apps at your connected phone, and copies the updates from repository to  "updatePath" folder
 
-##Using a following librays:
+##Using a following libraries:
 [https://jsoup.org/](https://jsoup.org/)
 
 [https://github.com/vidstige/jadb](https://github.com/vidstige/jadb)
@@ -46,7 +49,7 @@ Optionally if you connects your phone via ADB, then it creates an update package
 [https://commons.apache.org/proper/commons-io/](https://commons.apache.org/proper/commons-io/)
 
 
-###APKing created by tbognar76. Please respect my time and my work and buy me beer (yes, I like it). Just press a button bellow:
+###APKing created by tbognar76. If you use my app, please respect my time and my work and buy me beer (yes, I like it). Just press a button bellow:
 
 [![alt paypal](https://img.shields.io/badge/Donate-PayPal-green.svg "Donate me! I like beers!")](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=9STUF7VAX9RTE&lc=HU&item_name=I%20like%20beers&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_SM%2egif%3aNonHosted)
 
