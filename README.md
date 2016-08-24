@@ -4,9 +4,9 @@
 
 ###Here is tool to maintain your local APK repository easily.
  
-##It helps to categorise the APK files: 
+##It helps to manage custom local APK file collection: 
 You can create any custom structure of folders as a repository, where you store your APK files
-You need to put the new files into the "inPath" folder, and APKking will move that file(s) into the repository using a following mechanism:
+You need to put the new files into the "inPath" folder, and APKing will move that file(s) into the repository using a following mechanism:
 
 * If you already have the APK in older version it will put the new one next to it (in a same folder)
 * If not, it will determine it's category from google play, and creates a folder in your repository 
@@ -28,7 +28,7 @@ You need to put the new files into the "inPath" folder, and APKking will move th
 * ADB connection to your phone is optional
 
 ##Prepare and run :
-What you need to do is set "apking.ini" , and simply run the APKing with the start.sh or start.bat . 
+What you need to do is set "apking.ini" , and simply run the APKing with the apking.sh or apking.bat . 
 There is no parameters to add. 
 Optionally if you connects your phone via ADB, then it creates an update package for you. 
 
