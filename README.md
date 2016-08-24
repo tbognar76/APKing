@@ -1,9 +1,6 @@
 #APKing
----
-##Having lot of APK file on your PC ? 
----
-APKing by tbognar76. Please respect my time and my work and donate me with some bucks via paypal : bognar.tamas@gmail.com
 
+##Having lot of APK files on your PC ? 
 
 ###Here is tool to maintain your local APK repository easily.
  
@@ -49,5 +46,11 @@ Optionally if you connects your phone via ADB, then it creates an update package
 [https://commons.apache.org/proper/commons-io/](https://commons.apache.org/proper/commons-io/)
 
 
+###APKing created by tbognar76. Please respect my time and my work and buy me beer (yes, I like it). Just press a button bellow:
 
+[![alt paypal](https://img.shields.io/badge/Donate-PayPal-green.svg "Donate me! I like beers!")](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=9STUF7VAX9RTE&lc=HU&item_name=I%20like%20beers&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_SM%2egif%3aNonHosted)
+
+
+
+ 
 			
