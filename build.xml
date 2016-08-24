@@ -1,0 +1,36 @@
+<project default="release">
+
+	<target name="release"  depends="clean ,  compile , jar" >
+	</target>
+	
+    <target name="clean">
+        <delete dir="build"/>
+    </target>
+
+	<path id="classpath.apking">
+	      <fileset dir="lib">
+	        <include name="apk-parser-2.1.1.jar"/>
+	        <include name="commons-io-2.4.jar"/>
+	        <include name="jsoup-1.8.3.jar"/>
+	      </fileset>  
+	</path>
+	
+    <target name="compile">
+        <mkdir dir="build/classes"/>
+        <javac srcdir="src" destdir="build/classes" classpathref="classpath.apking" />
+    </target>
+
+    <target name="jar">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/APKing.jar" basedir="build/classes">
+            <manifest>
+                <attribute name="Main-Class" value="hu.tbognar76.apking.Starter"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="run">
+        <java jar="build/jar/APKing.jar" fork="true"/>
+    </target>
+
+</project>
