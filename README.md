@@ -53,6 +53,14 @@ Optionally if you connects your phone via ADB, then it creates an update package
 
 [![alt paypal](https://img.shields.io/badge/Donate-PayPal-green.svg "Donate me! I like beers!")](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=9STUF7VAX9RTE&lc=HU&item_name=I%20like%20beers&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_SM%2egif%3aNonHosted)
 
+##See my repository using total commander.
+APK files in a clear structure, without duplications, maintaind by APKing
+where APKing moves files:
+* New files to the repository:   APK_IN to APK_READY/{app || game}/{category by me or google play}
+* Duplicated or old APK versions from APK_READY /* moves to APK_DELETE
+* Files need to update on phone (if the phone connected by ADB before run) : APK_READY to APK_UPDATE (copy in this case)
+
+![alt tag](https://raw.githubusercontent.com/tbognar76/APKing/master/images/tc.png)
 
 
  
