@@ -19,10 +19,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.URI;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -34,16 +36,21 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.PropertyResourceBundle;
+
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+
 import net.dongliu.apk.parser.ApkParser;
 import net.dongliu.apk.parser.bean.ApkMeta;
 
 public class ApKing {
 
+	private Initialization init = null;
+	
 	public class Cat {
 		String cat1 = null;
 		String cat2 = null;
@@ -55,19 +62,7 @@ public class ApKing {
 		boolean max = false;
 	}
 
-	String inPath = null;
-	String outPath = null;
-	String deletePath = null;
-	String updatePath = null;
-
-	String serialCache = null;
-	String phoneCache = null;
-	boolean isMoveFromIN = false;
-	boolean isMoveToDeleteFolder = false;
-	boolean isCopyNewerFilesToUpdatePath = false;
-
-	// TEST VERSION
-	static String inifile = "./apking.ini";
+	
 
 	// works with package name to determine the duplications
 	HashMap<String, ArrayList<ApkInfo>> packageHash = null;
@@ -78,16 +73,20 @@ public class ApKing {
 
 	private DeviceManager dmanager = null;
 
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// START / MAIN
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	public void start() {
-
+		this.init = new Initialization();
+		
 		// Reads the property file
-		initResources();
-		if (this.isCopyNewerFilesToUpdatePath) {
+		this.init.initResources();
+		if (this.init.isCopyNewerFilesToUpdatePath) {
 			// UPDATE PATH MUST BE EMPTY IF SET
-			File ufile = new File(this.updatePath);
+			File ufile = new File(this.init.updatePath);
 			if (ufile.isDirectory()) {
 				if (ufile.list().length > 0) {
-					System.out.println("Update Directory is not empty! : " + this.updatePath);
+					System.out.println("Update Directory is not empty! : " + this.init.updatePath);
 					System.exit(0);
 				}
 			} else {
@@ -104,7 +103,7 @@ public class ApKing {
 		// STEP 2: MANAGE IN_FOLDER
 		System.out.println("----------------------------------------------");
 		System.out.println("IN FOLDER PROCESSING:");
-		File[] infiles = new File(inPath).listFiles();
+		File[] infiles = new File(this.init.inPath).listFiles();
 		moveFilesFromAPK_INtoAPK_READY(infiles, true, true);
 
 		// STEP3 : REFRESH THE CACHES AGAIN
@@ -136,6 +135,12 @@ public class ApKing {
 		System.out.println("NEWER ON PHONE----------------------------------");
 		reportPhoneNEWEROnPhone();
 
+		// STEP 6 : create catalog
+		if (this.init.isCatalogGenerated){
+			createCatalog();
+		}
+		
+		
 		System.out.println("----------------------------------------------");
 		System.out.println("READY!!!!!!!!!!!");
 	}
@@ -153,9 +158,9 @@ public class ApKing {
 								+ app.versionName, 50);
 						log.add(line);
 						// ai.fullpath
-						if (isCopyNewerFilesToUpdatePath) {
+						if (this.init.isCopyNewerFilesToUpdatePath) {
 							Path sourcePath = Paths.get(ai.fullpath);
-							Path destinationPath = Paths.get(this.updatePath + ai.filename);
+							Path destinationPath = Paths.get(this.init.updatePath + ai.filename);
 							try {
 								Files.copy(sourcePath, destinationPath);
 							} catch (IOException e) {
@@ -239,7 +244,7 @@ public class ApKing {
 	}
 
 	private void refreshCachefromAPK_READY() {
-		File[] files = new File(outPath).listFiles();
+		File[] files = new File(this.init.outPath).listFiles();
 		// REREAD THE CACHES
 		// Init VARIABLES
 		this.packageHash = new HashMap<String, ArrayList<ApkInfo>>();
@@ -255,39 +260,11 @@ public class ApKing {
 		updateHashFromAPK_READY(files);
 		// Writes down the changes
 		writeOutCache();
-		System.out.println("Cache refreshed! (IN:" + this.serialInHash.size() + " OUT:" + this.serialOutHash.size()
-				+ ")");
+		System.out.println("Cache refreshed! (IN:" + this.serialInHash.size() + " OUT:" + this.serialOutHash.size()	+ ")");
 
 	}
 
-	private void initResources() {
-		PropertyResourceBundle rb = getRescource();
-
-		this.inPath = rb.getString("inPath");
-		this.outPath = rb.getString("outPath");
-		this.deletePath = rb.getString("deletePath");
-		this.serialCache = rb.getString("serialCache");
-		this.updatePath = rb.getString("updatePath");
-		this.phoneCache = rb.getString("phoneCache");
-		this.isMoveFromIN = rb.getString("isMoveFromIN").equals("true");
-		this.isMoveToDeleteFolder = rb.getString("isMoveToDeleteFolder").equals("true");
-		this.isCopyNewerFilesToUpdatePath = rb.getString("isCopyNewerFilesToUpdatePath").equals("true");
-
-		makeDir(inPath);
-		makeDir(outPath);
-		makeDir(deletePath);
-		makeDir(updatePath);
-
-		System.out.println("IN FOLDER ROOT : " + this.inPath);
-		System.out.println("OUT FOLDER ROOT: " + this.outPath);
-		System.out.println("DELETE FOLDER  : " + this.deletePath);
-		System.out.println("UPDATE OUT DIR : " + this.updatePath);
-		System.out.println("Serial Cache   : " + this.serialCache);
-		System.out.println("Phone Cache    : " + this.phoneCache);
-		System.out.println("Move from IN   : " + this.isMoveFromIN);
-		System.out.println("Move to Delete : " + this.isMoveToDeleteFolder);
-		System.out.println("Copy to UPDATE : " + this.isCopyNewerFilesToUpdatePath);
-	}
+	
 
 	// REPORTS from "packageHash"
 	// DELETES OLD VERSIONS IF PARAMETER "TRUE"
@@ -370,7 +347,7 @@ public class ApKing {
 							System.out.println("del " + aic.apkinfo.fullpath);
 
 							if (toDelete) {
-								String renamedfile = this.deletePath + "/"
+								String renamedfile = this.init.deletePath + "/"
 										+ FilenameUtils.getName(aic.apkinfo.fullpath);
 								File file = new File(aic.apkinfo.fullpath);
 								if (file.renameTo(new File(renamedfile))) {
@@ -393,30 +370,7 @@ public class ApKing {
 
 	}
 
-	private PropertyResourceBundle getRescource() {
-		FileInputStream fis = null;
-		try {
-			fis = new FileInputStream(inifile);
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		try {
-			return new PropertyResourceBundle(fis);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			try {
-				fis.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		return null;
 
-	}
 
 	// USES packageHash
 	private void moveFilesFromAPK_INtoAPK_READY(File[] files, boolean isSamePackageFeature,
@@ -454,7 +408,7 @@ public class ApKing {
 									+ FilenameUtils.getExtension(file.getPath());
 						}
 
-						if (this.isMoveFromIN) {
+						if (this.init.isMoveFromIN) {
 							if (file.renameTo(new File(pathOLD + filenameNEW))) {
 
 							} else {
@@ -478,6 +432,9 @@ public class ApKing {
 							cc.cat1 = "Unknown";
 							cc.cat2 = "Unknown Package";
 						} else {
+							//
+							// Google Play parser call!
+							//
 							cc = getCategoryFromGooglePlayStore(packname);
 						}
 					} else {
@@ -486,12 +443,12 @@ public class ApKing {
 						cc.cat2 = "Unknown Package";
 					}
 
-					String renamedfile = outPath + "/" + cc.cat1 + "/" + cc.cat2 + "/" + file.getName();
-					String renamedpath1 = outPath + "/" + cc.cat1 + "/";
-					String renamedpath2 = outPath + "/" + cc.cat1 + "/" + cc.cat2 + "/";
+					String renamedfile = this.init.outPath + "/" + cc.cat1 + "/" + cc.cat2 + "/" + file.getName();
+					String renamedpath1 = this.init.outPath + "/" + cc.cat1 + "/";
+					String renamedpath2 = this.init.outPath + "/" + cc.cat1 + "/" + cc.cat2 + "/";
 
 					// create dirs move files
-					if (this.isMoveFromIN) {
+					if (this.init.isMoveFromIN) {
 						makeDir(renamedpath1);
 						makeDir(renamedpath2);
 
@@ -512,7 +469,7 @@ public class ApKing {
 	// Filling OUTCACHE
 	// Filling packageHash group by package
 	private void updateHashFromAPK_READY(File[] files) {
-
+		
 		for (File file : files) {
 			if (file.isDirectory()) {
 				// System.out.println("Directory: " + file.getName());
@@ -531,14 +488,14 @@ public class ApKing {
 				}
 
 				if (packageHash.containsKey(ai.packname)) {
-					// van már
+					// if we have
 					packageHash.get(ai.packname).add(ai);
 				} else {
 					ArrayList<ApkInfo> l = new ArrayList<ApkInfo>();
 					l.add(ai);
 					packageHash.put(ai.packname, l);
 				}
-
+							
 				/*
 				 * if (apkMeta != null) { String packname =
 				 * apkMeta.getPackageName(); //
@@ -561,7 +518,8 @@ public class ApKing {
 				// addStr(cc.cat1,cc.cat2,12),file.getName(),40));
 			}
 		}
-	}
+		} 
+		
 
 	private void makeDir(String path) {
 		File dir = new File(path);
@@ -801,7 +759,7 @@ public class ApKing {
 
 	private void writeOutCache() {
 		try {
-			FileOutputStream fileOut = new FileOutputStream(this.serialCache);
+			FileOutputStream fileOut = new FileOutputStream(this.init.serialCache);
 			ObjectOutputStream out = new ObjectOutputStream(fileOut);
 			out.writeObject(this.serialOutHash);
 			/*
@@ -821,7 +779,7 @@ public class ApKing {
 
 	private void readInCache() {
 		try {
-			FileInputStream fileIn = new FileInputStream(this.serialCache);
+			FileInputStream fileIn = new FileInputStream(this.init.serialCache);
 			ObjectInputStream in = new ObjectInputStream(fileIn);
 			this.serialInHash = (HashMap<String, ApkInfo>) in.readObject();
 			in.close();
@@ -841,7 +799,7 @@ public class ApKing {
 
 	private void writePhoneCache() {
 		try {
-			FileOutputStream fileOut = new FileOutputStream(this.phoneCache);
+			FileOutputStream fileOut = new FileOutputStream(this.init.phoneCache);
 			ObjectOutputStream out = new ObjectOutputStream(fileOut);
 			out.writeObject(this.dmanager.apps);
 			out.close();
@@ -855,7 +813,7 @@ public class ApKing {
 
 	private void readPhoneCache() {
 		try {
-			FileInputStream fileIn = new FileInputStream(this.phoneCache);
+			FileInputStream fileIn = new FileInputStream(this.init.phoneCache);
 			ObjectInputStream in = new ObjectInputStream(fileIn);
 			this.dmanager.apps = (ArrayList<DeviceApp>) in.readObject();
 			in.close();
@@ -872,5 +830,133 @@ public class ApKing {
 		}
 
 	}
+	
+	private void createCatalog(){
+		System.out.println("----------------------------------------------");
+		System.out.println("Generating catalog to : " + this.init.catalogHtml);
+		File catfile = new File(this.init.catalogHtml+"/index.html");
+		
+		HashMap<String,String> types = new HashMap<String, String>();
+	
+		try{	
+			FileUtils.copyFile(new File("html/noicon.png"), new File(this.init.catalogHtml+"/"+this.init.catalogPic+"noicon.png"));
+			
+			FileWriter fileWriter = new FileWriter(catfile);
+			
+			//fileWriter.write("<html><head></head><body>");
+			String fhead = FileUtils.readFileToString(new File("html/catalog_head.html")); 
+	        String ftail = FileUtils.readFileToString(new File("html/catalog_tail.html"));
+			
+			StringBuffer ftags = new StringBuffer();
+			StringBuffer felements = new StringBuffer();
+			
+			for (Map.Entry<String, ApkInfo> entry : this.serialOutHash.entrySet()) {
+				
+				String key = entry.getKey();
+				ApkInfo ai = entry.getValue();
+				//System.out.println(value.toString());
+				
+				String fullpath = ai.fullpath;
+				fullpath = fullpath.replace("\\", "/");
+				fullpath = fullpath.replace(this.init.outPath, "");
+				fullpath = fullpath.replace(ai.filename, "");
+				fullpath = fullpath.replace(" ", "-");
+				fullpath = fullpath.trim();
+				
+				for (String s : fullpath.split("/")){
+					types.put(s,s);
+				}
 
+				fullpath = fullpath.replace("/", " ");
+				fullpath = fullpath.trim();
+				StringBuffer sb = new StringBuffer();
+				
+				sb.append("<div class=\"elem "+fullpath+"\">\n");
+				
+				String iname=ai.packname;
+				if (!isLocalVersionGooglePlayImage(ai.packname)){
+					iname="noicon";
+				}
+				
+				 
+				
+				sb.append("<img class=\"coverimg\" src=\""+this.init.catalogPic+"/"+ iname +".png\"></img>");
+				sb.append("<div class=\"name\">");
+				sb.append("<a href=\"https://play.google.com/store/apps/details?id=" + URI.create(ai.packname) + "&hl=en\" target=\"_blank\" >"+ai.name+"</a>");
+				sb.append(" ( <span class=\"version\">"+ ai.version+"</span>)");
+				sb.append("</div>\n");
+				sb.append("</div>\n");
+
+				felements.append(sb);
+			}
+			
+			ftags.append("<div id=\"selector\">");
+			for (Map.Entry<String, String> entry : types.entrySet()) {
+				
+				ftags.append("<a id=\""+ entry.getKey()+ "-button\" href=\"#\" class=\"button\" >"+ entry.getKey()+ "</a>");
+			}
+			ftags.append("</div>");
+			
+			fileWriter.write(fhead);
+			fileWriter.write(ftags.toString());
+			fileWriter.write(felements.toString());
+			fileWriter.write(ftail);
+			
+			fileWriter.flush();
+			fileWriter.close();
+		
+	} catch (IOException e) {
+		e.printStackTrace();
+	} 
+		System.out.println("Done!");
+	}
+	
+	private boolean isLocalVersionGooglePlayImage(String packageName){
+		
+		String fname = this.init.catalogHtml+"/"+this.init.catalogPic+"/"+packageName+".png";
+		
+		if (!this.init.isCatalogPicForced) { 
+			File t = new File(fname); 
+			if (t.exists()){
+				//System.out.println("------"+fname);
+				if (t.length()>1){
+					return true;
+				}
+				
+				return false;
+			} else {
+				// WORK TO DO BELOW
+			}
+		}
+		
+		Document doc = null;
+	
+			try {
+				doc = Jsoup.connect("https://play.google.com/store/apps/details?id=" + URI.create(packageName) + "&hl=en")
+						.get();
+
+				//Joni jó, de néha nem
+				//Elements img =  doc.getElementsByClass("cover-image");
+				Elements img =  doc.select("div.cover-container img");
+				
+				String uu = "http:"+img.first().attr("src");
+				uu=uu.replace("=w300", "=w120");
+				URL url = new URL(uu); 
+					
+				FileUtils.copyURLToFile(url, new File(fname));
+				
+			} catch (Exception e) {
+				
+				try {
+					FileUtils.write(new File(fname), "-");
+					return false;
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		
+		return true;
+	}
+	
 }

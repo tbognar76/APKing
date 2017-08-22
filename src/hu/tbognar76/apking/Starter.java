@@ -15,7 +15,13 @@ public class Starter {
 		
 		ApKing apkking = new ApKing();
 		apkking.start();
-	
+		
+		//ZipTools zipTools = new ZipTools();
+		//zipTools.check();
+		
+		//ResourceDownloadTool rdt = new ResourceDownloadTool();
+		//rdt.start();
+		
 	}
 	
 }
