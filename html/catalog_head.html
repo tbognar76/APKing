@@ -18,6 +18,7 @@ $(document).ready(function(){
 	$("a.button").each ( function(i,e){
 		//console.log( bname );
 		$("#"+$( this ).text()+"-button").click(function(){
+			clearAll();
 			$("."+$(e).text()).toggle();  
 			sb="#"+$(e).text()+"-button";
 			if ($(sb).hasClass("selected")){
@@ -28,6 +29,20 @@ $(document).ready(function(){
 		});
 	});
 });
+
+function clearAll(){
+	$("a.button").each ( function(i2,e2){
+			ss=$(e2).text();
+			if (ss!=""){
+				console.log( "--"+ss );
+				$("."+ss).hide();  
+				sb2="#"+$(e2).text()+"-button";
+				if ($(sb2).hasClass("selected")){
+					$(sb2).removeClass("selected");
+				} 
+			}
+	});
+}
 
 </script>
 

@@ -14,7 +14,6 @@ package hu.tbognar76.apking;
 //See the License for the specific language governing permissions and
 //limitations under the License.
 
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -32,10 +31,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.PropertyResourceBundle;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -50,7 +51,7 @@ import net.dongliu.apk.parser.bean.ApkMeta;
 public class ApKing {
 
 	private Initialization init = null;
-	
+
 	public class Cat {
 		String cat1 = null;
 		String cat2 = null;
@@ -62,8 +63,6 @@ public class ApKing {
 		boolean max = false;
 	}
 
-	
-
 	// works with package name to determine the duplications
 	HashMap<String, ArrayList<ApkInfo>> packageHash = null;
 
@@ -73,12 +72,12 @@ public class ApKing {
 
 	private DeviceManager dmanager = null;
 
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// START / MAIN
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	public void start() {
 		this.init = new Initialization();
-		
+
 		// Reads the property file
 		this.init.initResources();
 		if (this.init.isCopyNewerFilesToUpdatePath) {
@@ -136,11 +135,10 @@ public class ApKing {
 		reportPhoneNEWEROnPhone();
 
 		// STEP 6 : create catalog
-		if (this.init.isCatalogGenerated){
+		if (this.init.isCatalogGenerated) {
 			createCatalog();
 		}
-		
-		
+
 		System.out.println("----------------------------------------------");
 		System.out.println("READY!!!!!!!!!!!");
 	}
@@ -260,11 +258,10 @@ public class ApKing {
 		updateHashFromAPK_READY(files);
 		// Writes down the changes
 		writeOutCache();
-		System.out.println("Cache refreshed! (IN:" + this.serialInHash.size() + " OUT:" + this.serialOutHash.size()	+ ")");
+		System.out.println("Cache refreshed! (IN:" + this.serialInHash.size() + " OUT:" + this.serialOutHash.size()
+				+ ")");
 
 	}
-
-	
 
 	// REPORTS from "packageHash"
 	// DELETES OLD VERSIONS IF PARAMETER "TRUE"
@@ -370,8 +367,6 @@ public class ApKing {
 
 	}
 
-
-
 	// USES packageHash
 	private void moveFilesFromAPK_INtoAPK_READY(File[] files, boolean isSamePackageFeature,
 			boolean isGooglePlayCategoryFeauture) {
@@ -469,7 +464,7 @@ public class ApKing {
 	// Filling OUTCACHE
 	// Filling packageHash group by package
 	private void updateHashFromAPK_READY(File[] files) {
-		
+
 		for (File file : files) {
 			if (file.isDirectory()) {
 				// System.out.println("Directory: " + file.getName());
@@ -495,7 +490,7 @@ public class ApKing {
 					l.add(ai);
 					packageHash.put(ai.packname, l);
 				}
-							
+
 				/*
 				 * if (apkMeta != null) { String packname =
 				 * apkMeta.getPackageName(); //
@@ -518,8 +513,7 @@ public class ApKing {
 				// addStr(cc.cat1,cc.cat2,12),file.getName(),40));
 			}
 		}
-		} 
-		
+	}
 
 	private void makeDir(String path) {
 		File dir = new File(path);
@@ -830,133 +824,143 @@ public class ApKing {
 		}
 
 	}
-	
-	private void createCatalog(){
+
+	private void createCatalog() {
 		System.out.println("----------------------------------------------");
 		System.out.println("Generating catalog to : " + this.init.catalogHtml);
-		File catfile = new File(this.init.catalogHtml+"/index.html");
-		
-		HashMap<String,String> types = new HashMap<String, String>();
-	
-		try{	
-			FileUtils.copyFile(new File("html/noicon.png"), new File(this.init.catalogHtml+"/"+this.init.catalogPic+"noicon.png"));
-			
+		File catfile = new File(this.init.catalogHtml + "/index.html");
+
+		HashMap<String, String> types = new HashMap<String, String>();
+
+		try {
+			FileUtils.copyFile(new File("html/noicon.png"), new File(this.init.catalogHtml + "/" + this.init.catalogPic
+					+ "noicon.png"));
+
 			FileWriter fileWriter = new FileWriter(catfile);
-			
-			//fileWriter.write("<html><head></head><body>");
-			String fhead = FileUtils.readFileToString(new File("html/catalog_head.html")); 
-	        String ftail = FileUtils.readFileToString(new File("html/catalog_tail.html"));
-			
+
+			// fileWriter.write("<html><head></head><body>");
+			String fhead = FileUtils.readFileToString(new File("html/catalog_head.html"));
+			String ftail = FileUtils.readFileToString(new File("html/catalog_tail.html"));
+
 			StringBuffer ftags = new StringBuffer();
 			StringBuffer felements = new StringBuffer();
-			
+
 			for (Map.Entry<String, ApkInfo> entry : this.serialOutHash.entrySet()) {
-				
+
 				String key = entry.getKey();
 				ApkInfo ai = entry.getValue();
-				//System.out.println(value.toString());
-				
+				// System.out.println(value.toString());
+
 				String fullpath = ai.fullpath;
 				fullpath = fullpath.replace("\\", "/");
 				fullpath = fullpath.replace(this.init.outPath, "");
 				fullpath = fullpath.replace(ai.filename, "");
 				fullpath = fullpath.replace(" ", "-");
 				fullpath = fullpath.trim();
-				
-				for (String s : fullpath.split("/")){
-					types.put(s,s);
+
+				for (String s : fullpath.split("/")) {
+					if (!s.equals("")) {
+						types.put(s, s);
+					}
 				}
 
 				fullpath = fullpath.replace("/", " ");
 				fullpath = fullpath.trim();
 				StringBuffer sb = new StringBuffer();
-				
-				sb.append("<div class=\"elem "+fullpath+"\">\n");
-				
-				String iname=ai.packname;
-				if (!isLocalVersionGooglePlayImage(ai.packname)){
-					iname="noicon";
+
+				sb.append("<div class=\"elem " + fullpath + "\">\n");
+
+				String iname = ai.packname;
+				if (!isLocalVersionGooglePlayImage(ai.packname)) {
+					iname = "noicon";
 				}
-				
-				 
-				
-				sb.append("<img class=\"coverimg\" src=\""+this.init.catalogPic+"/"+ iname +".png\"></img>");
+
+				sb.append("<img class=\"coverimg\" src=\"" + this.init.catalogPic + "/" + iname + ".png\"></img>");
 				sb.append("<div class=\"name\">");
-				sb.append("<a href=\"https://play.google.com/store/apps/details?id=" + URI.create(ai.packname) + "&hl=en\" target=\"_blank\" >"+ai.name+"</a>");
-				sb.append(" ( <span class=\"version\">"+ ai.version+"</span>)");
+				sb.append("<a href=\"https://play.google.com/store/apps/details?id=" + URI.create(ai.packname)
+						+ "&hl=en\" target=\"_blank\" >" + ai.name + "</a>");
+				sb.append(" ( <span class=\"version\">" + ai.version + "</span>)");
 				sb.append("</div>\n");
 				sb.append("</div>\n");
 
 				felements.append(sb);
 			}
-			
+
 			ftags.append("<div id=\"selector\">");
-			for (Map.Entry<String, String> entry : types.entrySet()) {
-				
-				ftags.append("<a id=\""+ entry.getKey()+ "-button\" href=\"#\" class=\"button\" >"+ entry.getKey()+ "</a>");
+			
+			Map<String,String> sortedTypes =  types.entrySet().stream() .sorted(Map.Entry.comparingByKey())
+	                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+	                        (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+
+			
+			for (Map.Entry<String, String> entry : sortedTypes.entrySet()) {
+
+				ftags.append("<a id=\"" + entry.getKey() + "-button\" href=\"#\" class=\"button\" >" + entry.getKey()
+						+ "</a>");
 			}
 			ftags.append("</div>");
-			
+
 			fileWriter.write(fhead);
 			fileWriter.write(ftags.toString());
 			fileWriter.write(felements.toString());
 			fileWriter.write(ftail);
-			
+
 			fileWriter.flush();
 			fileWriter.close();
-		
-	} catch (IOException e) {
-		e.printStackTrace();
-	} 
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		System.out.println("Done!");
 	}
-	
-	private boolean isLocalVersionGooglePlayImage(String packageName){
-		
-		String fname = this.init.catalogHtml+"/"+this.init.catalogPic+"/"+packageName+".png";
-		
-		if (!this.init.isCatalogPicForced) { 
-			File t = new File(fname); 
-			if (t.exists()){
-				//System.out.println("------"+fname);
-				if (t.length()>1){
+
+	private boolean isLocalVersionGooglePlayImage(String packageName) {
+
+		String fname = this.init.catalogHtml + "/" + this.init.catalogPic + "/" + packageName + ".png";
+
+		if (!this.init.isCatalogPicForced) {
+			File t = new File(fname);
+			if (t.exists()) {
+				// System.out.println("------"+fname);
+				if (t.length() > 1) {
 					return true;
 				}
-				
+
 				return false;
 			} else {
 				// WORK TO DO BELOW
 			}
 		}
-		
-		Document doc = null;
-	
-			try {
-				doc = Jsoup.connect("https://play.google.com/store/apps/details?id=" + URI.create(packageName) + "&hl=en")
-						.get();
 
-				//Joni jó, de néha nem
-				//Elements img =  doc.getElementsByClass("cover-image");
-				Elements img =  doc.select("div.cover-container img");
-				
-				String uu = "http:"+img.first().attr("src");
-				uu=uu.replace("=w300", "=w120");
-				URL url = new URL(uu); 
-					
-				FileUtils.copyURLToFile(url, new File(fname));
-				
-			} catch (Exception e) {
-				
-				try {
-					FileUtils.write(new File(fname), "-");
-					return false;
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
+		Document doc = null;
+
+		try {
+			doc = Jsoup.connect("https://play.google.com/store/apps/details?id=" + URI.create(packageName) + "&hl=en")
+					.get();
+
+			// Joni jó, de néha nem
+			// Elements img = doc.getElementsByClass("cover-image");
+			Elements img = doc.select("div.cover-container img");
+
+			String uu = "http:" + img.first().attr("src");
+			uu=uu.replace("http:https:","https:");
+			uu = uu.replace("=w300", "=w120");
+			URL url = new URL(uu);
+
+			FileUtils.copyURLToFile(url, new File(fname));
+
+		} catch (Exception e) {
+
+			try {
+				FileUtils.write(new File(fname), "-");
+				return false;
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-		
+		}
+
 		return true;
 	}
-	
+
 }
