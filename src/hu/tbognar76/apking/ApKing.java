@@ -16,7 +16,6 @@ package hu.tbognar76.apking;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -35,8 +34,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.PropertyResourceBundle;
 import java.util.stream.Collectors;
+
+import net.dongliu.apk.parser.ApkParser;
+import net.dongliu.apk.parser.bean.ApkMeta;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -45,17 +46,9 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import net.dongliu.apk.parser.ApkParser;
-import net.dongliu.apk.parser.bean.ApkMeta;
-
 public class ApKing {
 
 	private Initialization init = null;
-
-	public class Cat {
-		String cat1 = null;
-		String cat2 = null;
-	}
 
 	public class CApkInfo {
 		ComparableVersion cmp = null;
@@ -152,8 +145,7 @@ public class ApKing {
 				ArrayList<ApkInfo> aai = this.packageHash.get(app.packageName);
 				for (ApkInfo ai : aai) {
 					if (new ComparableVersion(ai.version).compareTo(new ComparableVersion(app.versionName)) > 0) {
-						String line = concatWithPos(concatWithPos(ai.name, ai.version, 35), "on phone: "
-								+ app.versionName, 50);
+						String line = concatWithPos(concatWithPos(ai.name, ai.version, 35), "on phone: " + app.versionName, 50);
 						log.add(line);
 						// ai.fullpath
 						if (this.init.isCopyNewerFilesToUpdatePath) {
@@ -188,8 +180,7 @@ public class ApKing {
 				ArrayList<ApkInfo> aai = this.packageHash.get(app.packageName);
 				for (ApkInfo ai : aai) {
 					if (new ComparableVersion(ai.version).compareTo(new ComparableVersion(app.versionName)) < 0) {
-						String line = concatWithPos(concatWithPos(ai.name, ai.version, 35), "on phone: "
-								+ app.versionName, 50);
+						String line = concatWithPos(concatWithPos(ai.name, ai.version, 35), "on phone: " + app.versionName, 50);
 						log.add(line);
 					}
 				}
@@ -212,8 +203,7 @@ public class ApKing {
 				ArrayList<ApkInfo> aai = this.packageHash.get(app.packageName);
 				for (ApkInfo ai : aai) {
 					if (new ComparableVersion(ai.version).compareTo(new ComparableVersion(app.versionName)) == 0) {
-						String line = concatWithPos(concatWithPos(ai.name, ai.version, 35), "on phone: "
-								+ app.versionName, 50);
+						String line = concatWithPos(concatWithPos(ai.name, ai.version, 35), "on phone: " + app.versionName, 50);
 						log.add(line);
 					}
 				}
@@ -221,9 +211,9 @@ public class ApKing {
 		}
 
 		Collections.sort(log, (p1, p2) -> p1.compareTo(p2));
-		for (String line : log) {
-			// System.out.println(line);
-		}
+		// for (String line : log) {
+		// System.out.println(line);
+		// }
 		System.out.println("Number of: " + log.size());
 
 	}
@@ -234,8 +224,7 @@ public class ApKing {
 			if (this.packageHash.get(app.packageName) != null) {
 				ArrayList<ApkInfo> aai = this.packageHash.get(app.packageName);
 				for (ApkInfo ai : aai) {
-					System.out.println(concatWithPos(concatWithPos(ai.name, ai.version, 35), "on phone: "
-							+ app.versionName, 50));
+					System.out.println(concatWithPos(concatWithPos(ai.name, ai.version, 35), "on phone: " + app.versionName, 50));
 				}
 			}
 		}
@@ -258,8 +247,7 @@ public class ApKing {
 		updateHashFromAPK_READY(files);
 		// Writes down the changes
 		writeOutCache();
-		System.out.println("Cache refreshed! (IN:" + this.serialInHash.size() + " OUT:" + this.serialOutHash.size()
-				+ ")");
+		System.out.println("Cache refreshed! (IN:" + this.serialInHash.size() + " OUT:" + this.serialOutHash.size() + ")");
 
 	}
 
@@ -268,7 +256,7 @@ public class ApKing {
 	private void reportDuplications(boolean toDelete) {
 
 		for (Map.Entry<String, ArrayList<ApkInfo>> entry : this.packageHash.entrySet()) {
-			String key = entry.getKey();
+			// String key = entry.getKey();
 			ArrayList<ApkInfo> value = entry.getValue();
 			if (value.size() > 1) {
 				ArrayList<CApkInfo> cvalue = new ArrayList<ApKing.CApkInfo>();
@@ -333,9 +321,9 @@ public class ApKing {
 					System.out.println("::" + warning + maxi.apkinfo.name + " // " + vers);
 
 					for (CApkInfo aic : cvalue) {
-						String max = "";
+						// String max ;
 						if (aic.max) {
-							max = "rem #";
+							// max = "rem #";
 							// A LEGUJABB
 							System.out.println("!OK " + aic.apkinfo.fullpath);
 
@@ -344,8 +332,7 @@ public class ApKing {
 							System.out.println("del " + aic.apkinfo.fullpath);
 
 							if (toDelete) {
-								String renamedfile = this.init.deletePath + "/"
-										+ FilenameUtils.getName(aic.apkinfo.fullpath);
+								String renamedfile = this.init.deletePath + "/" + FilenameUtils.getName(aic.apkinfo.fullpath);
 								File file = new File(aic.apkinfo.fullpath);
 								if (file.renameTo(new File(renamedfile))) {
 
@@ -368,8 +355,7 @@ public class ApKing {
 	}
 
 	// USES packageHash
-	private void moveFilesFromAPK_INtoAPK_READY(File[] files, boolean isSamePackageFeature,
-			boolean isGooglePlayCategoryFeauture) {
+	private void moveFilesFromAPK_INtoAPK_READY(File[] files, boolean isSamePackageFeature, boolean isGooglePlayCategoryFeauture) {
 		for (File file : files) {
 			if (file.isDirectory()) {
 				// System.out.println("Directory: " + file.getName());
@@ -399,16 +385,14 @@ public class ApKing {
 						String filenameOLD = FilenameUtils.getName(apkinfo.fullpath);
 						String filenameNEW = FilenameUtils.getName(file.getPath());
 						if (filenameOLD.equals(filenameNEW)) {
-							filenameNEW = FilenameUtils.getBaseName(file.getPath()) + "_(new)."
-									+ FilenameUtils.getExtension(file.getPath());
+							filenameNEW = FilenameUtils.getBaseName(file.getPath()) + "_(new)." + FilenameUtils.getExtension(file.getPath());
 						}
 
 						if (this.init.isMoveFromIN) {
 							if (file.renameTo(new File(pathOLD + filenameNEW))) {
 
 							} else {
-								System.out.println("File is failed to move next to its prev version! " + pathOLD
-										+ filenameNEW);
+								System.out.println("File is failed to move next to its prev version! " + pathOLD + filenameNEW);
 							}
 						}
 						System.out.println("Moved " + concatWithPos(filenameNEW, " to " + pathOLD, 30));
@@ -417,7 +401,7 @@ public class ApKing {
 
 				if (isGooglePlayCategoryFeauture && apkinfo == null) {
 
-					Cat cc = new Cat();
+					GoogleCategory cc = new GoogleCategory();
 
 					if (apkMeta != null) {
 						String packname = apkMeta.getPackageName();
@@ -526,21 +510,22 @@ public class ApKing {
 		}
 	}
 
-	private Cat getCategoryFromGooglePlayStore(String packageName) {
-		Cat cc = new Cat();
+	public GoogleCategory getCategoryFromGooglePlayStore(String packageName) {
+		GoogleCategory cc = new GoogleCategory();
 		cc.cat1 = "Unknown";
 		cc.cat2 = "Unknown";
+		String url = "https://play.google.com/store/apps/details?id=" + URI.create(packageName) + "&hl=en";
 
 		Document doc = null;
 		try {
-			doc = Jsoup.connect("https://play.google.com/store/apps/details?id=" + URI.create(packageName) + "&hl=en")
-					.get();
+			doc = Jsoup.connect(url).get();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			// e.printStackTrace();
+			System.out.println("!! GooglePlay connect error with : " + url);
 			return cc;
 		}
-		// <span itemprop="genre">Életstílus</span>
+		// <span itemprop="genre">Ã‰letstÃ­lus</span>
 
 		/*
 		 * Elements link = doc.select(".document-subtitle category"); String
@@ -548,8 +533,27 @@ public class ApKing {
 		 * linkText = link.text(); // "example""
 		 */
 
-		Elements genres = doc.select("span[itemprop=genre]");
-		cc.cat2 = genres.first().text();
+		Elements genres = doc.select("a[itemprop=genre]");
+		if (genres != null) {
+			Element e = genres.first();
+			if (e != null) {
+				cc.cat2 = e.text();
+
+				String hr = e.attr("href");
+
+				if (hr.indexOf("category/GAME") != -1 || hr.indexOf("category/FAMILY") != -1) {
+					cc.cat1 = "Game";
+				} else {
+					cc.cat1 = "Application";
+				}
+
+			} else {
+				System.out.println("!! GooglePlay parse error structure with : " + url);
+			}
+
+		} else {
+			System.out.println("!! GooglePlay parse error with : " + url);
+		}
 		/*
 		 * for (Element e : genres) { // System.out.println(e.text()); if
 		 * (!out.equals("")) { out = out + " "; } out = out + e.text();
@@ -559,13 +563,15 @@ public class ApKing {
 
 		// <div class="content" itemprop="softwareVersion"> 2.6.9.0 </div>
 
-		Elements versions = doc.select("div[itemprop=softwareVersion]");
+		// Elements versions = doc.select("div[itemprop=softwareVersion]");
+
 		// System.out.println(versions.first().text());
 
 		// <a class="document-subtitle category"
 		// href="/store/apps/category/GAME_ADVENTURE"> <span
-		// itemprop="genre">Kalandjátékok</span> </a>
+		// itemprop="genre">Kalandjï¿½tï¿½kok</span> </a>
 
+		/*
 		Elements maincat = doc.getElementsByClass("category");
 
 		if (maincat != null) {
@@ -584,6 +590,7 @@ public class ApKing {
 				// cc.cat1 = maincat.attr("href");
 			}
 		}
+		*/
 
 		// <img alt="PEGI 3" class="document-subtitle content-rating-badge"
 		// src="//lpfw=h28">
@@ -771,6 +778,7 @@ public class ApKing {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private void readInCache() {
 		try {
 			FileInputStream fileIn = new FileInputStream(this.init.serialCache);
@@ -809,7 +817,9 @@ public class ApKing {
 		try {
 			FileInputStream fileIn = new FileInputStream(this.init.phoneCache);
 			ObjectInputStream in = new ObjectInputStream(fileIn);
-			this.dmanager.apps = (ArrayList<DeviceApp>) in.readObject();
+			@SuppressWarnings("unchecked")
+			ArrayList<DeviceApp> readObject = (ArrayList<DeviceApp>) in.readObject();
+			this.dmanager.apps = readObject;
 			in.close();
 			fileIn.close();
 			// System.out.println("Cache loaded: " + this.serialCache +
@@ -833,8 +843,7 @@ public class ApKing {
 		HashMap<String, String> types = new HashMap<String, String>();
 
 		try {
-			FileUtils.copyFile(new File("html/noicon.png"), new File(this.init.catalogHtml + "/" + this.init.catalogPic
-					+ "noicon.png"));
+			FileUtils.copyFile(new File("html/noicon.png"), new File(this.init.catalogHtml + "/" + this.init.catalogPic + "noicon.png"));
 
 			FileWriter fileWriter = new FileWriter(catfile);
 
@@ -847,7 +856,7 @@ public class ApKing {
 
 			for (Map.Entry<String, ApkInfo> entry : this.serialOutHash.entrySet()) {
 
-				String key = entry.getKey();
+				// String key = entry.getKey();
 				ApkInfo ai = entry.getValue();
 				// System.out.println(value.toString());
 
@@ -877,8 +886,7 @@ public class ApKing {
 
 				sb.append("<img class=\"coverimg\" src=\"" + this.init.catalogPic + "/" + iname + ".png\"></img>");
 				sb.append("<div class=\"name\">");
-				sb.append("<a href=\"https://play.google.com/store/apps/details?id=" + URI.create(ai.packname)
-						+ "&hl=en\" target=\"_blank\" >" + ai.name + "</a>");
+				sb.append("<a href=\"https://play.google.com/store/apps/details?id=" + URI.create(ai.packname) + "&hl=en\" target=\"_blank\" >" + ai.name + "</a>");
 				sb.append(" ( <span class=\"version\">" + ai.version + "</span>)");
 				sb.append("</div>\n");
 				sb.append("</div>\n");
@@ -887,16 +895,12 @@ public class ApKing {
 			}
 
 			ftags.append("<div id=\"selector\">");
-			
-			Map<String,String> sortedTypes =  types.entrySet().stream() .sorted(Map.Entry.comparingByKey())
-	                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-	                        (oldValue, newValue) -> oldValue, LinkedHashMap::new));
 
-			
+			Map<String, String> sortedTypes = types.entrySet().stream().sorted(Map.Entry.comparingByKey()).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+
 			for (Map.Entry<String, String> entry : sortedTypes.entrySet()) {
 
-				ftags.append("<a id=\"" + entry.getKey() + "-button\" href=\"#\" class=\"button\" >" + entry.getKey()
-						+ "</a>");
+				ftags.append("<a id=\"" + entry.getKey() + "-button\" href=\"#\" class=\"button\" >" + entry.getKey() + "</a>");
 			}
 			ftags.append("</div>");
 
@@ -935,15 +939,14 @@ public class ApKing {
 		Document doc = null;
 
 		try {
-			doc = Jsoup.connect("https://play.google.com/store/apps/details?id=" + URI.create(packageName) + "&hl=en")
-					.get();
+			doc = Jsoup.connect("https://play.google.com/store/apps/details?id=" + URI.create(packageName) + "&hl=en").get();
 
-			// Joni jó, de néha nem
+			// Joni jÃ³, de nÃ©ha nem
 			// Elements img = doc.getElementsByClass("cover-image");
 			Elements img = doc.select("div.cover-container img");
 
 			String uu = "http:" + img.first().attr("src");
-			uu=uu.replace("http:https:","https:");
+			uu = uu.replace("http:https:", "https:");
 			uu = uu.replace("=w300", "=w120");
 			URL url = new URL(uu);
 

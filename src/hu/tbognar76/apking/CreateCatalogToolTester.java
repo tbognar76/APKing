@@ -1,7 +1,5 @@
 package hu.tbognar76.apking;
 
-import hu.tbognar76.apking.ApKing.Cat;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -42,7 +40,7 @@ public class CreateCatalogToolTester {
 			Elements img =  doc.getElementsByClass("cover-image");
 	        
 			//Elements img2 = doc.select("img.cover-image");
-			//System.out.println("KÉP: "+   img.first().attr("src"));
+			//System.out.println("KEP: "+   img.first().attr("src"));
 			
 			URL url = new URL("http:"+img.first().attr("src")); 
 					
@@ -106,7 +104,7 @@ public class CreateCatalogToolTester {
 			// e.printStackTrace();
 			return ;
 		}
-		// <span itemprop="genre">Életstílus</span>
+		// <span itemprop="genre">Eletstilus</span>
 
 		/*
 		 * Elements link = doc.select(".document-subtitle category"); String
@@ -130,7 +128,7 @@ public class CreateCatalogToolTester {
 
 		// <a class="document-subtitle category"
 		// href="/store/apps/category/GAME_ADVENTURE"> <span
-		// itemprop="genre">Kalandjátékok</span> </a>
+		// itemprop="genre">KalandjÃ¡tÃ©kok</span> </a>
 
 		Elements maincat = doc.getElementsByClass("category");
 
